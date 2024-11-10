@@ -14,6 +14,9 @@
   <!-- إضافة مكتبة Leaflet Locate CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.locatecontrol/0.72.0/L.Control.Locate.min.css" />
 
+  <!-- إضافة مكتبة Leaflet Compass CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-compass/0.3.0/leaflet-compass.min.css" />
+
   <!-- إضافة مكتبة Font Awesome للأيقونات -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
@@ -45,6 +48,9 @@
   <!-- إضافة مكتبة Leaflet Geocoder JavaScript -->
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
+  <!-- إضافة مكتبة Leaflet Compass JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-compass/0.3.0/leaflet-compass.min.js"></script>
+
   <script>
     // إعداد خيارات الخريطة
     const mapOptions = {
@@ -61,6 +67,13 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20
+    }).addTo(map);
+
+    // إضافة بوصلة للخريطة
+    L.control.compass({
+      position: 'topright',      // تحديد موقع البوصلة في الزاوية العلوية اليمنى
+      autoActive: true,          // تفعيل البوصلة تلقائيًا
+      showDigit: true            // عرض الزاوية الرقمية على البوصلة
     }).addTo(map);
 
     // تعريف طبقات للمنطقة وحاويات النفايات
