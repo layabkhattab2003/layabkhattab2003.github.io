@@ -11,8 +11,8 @@
   <!-- إضافة مكتبة Leaflet Geocoder CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
-  <!-- إضافة مكتبة Leaflet Locate CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.locatecontrol/0.72.0/L.Control.Locate.min.css" />
+  <!-- إضافة مكتبة Leaflet Compass CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-compass/0.3.0/leaflet-compass.min.css" />
 
   <!-- إضافة مكتبة Font Awesome للأيقونات -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
@@ -45,6 +45,9 @@
   <!-- إضافة مكتبة Leaflet Geocoder JavaScript -->
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
+  <!-- إضافة مكتبة Leaflet Compass JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-compass/0.3.0/leaflet-compass.min.js"></script>
+
   <script>
     // إعداد خيارات الخريطة
     const mapOptions = {
@@ -63,111 +66,22 @@
       maxZoom: 20
     }).addTo(map);
 
-    // تعريف طبقات للمنطقة وحاويات النفايات
-    let zonesLayer = L.layerGroup().addTo(map);
-    let wasteContainersLayer = L.layerGroup().addTo(map);
-
-    // تحميل بيانات GeoJSON للمناطق وإضافتها إلى طبقة zonesLayer
-    $.getJSON("RamallahZones.json", function (RZ) {
-      L.geoJson(RZ, {
-        style: function (feature) {
-          return {
-            fillColor: "yellow",
-            fillOpacity: 0.3,
-            color: "yellow",
-            weight: 1.0,
-            opacity: 0.7
-          };
-        },
-        onEachFeature: function (feature, layer) {
-          layer.on('click', function (e) {
-            alert("Zone: " + feature.properties.NAME_ENGLI + "\nMAIL_CODE: " + feature.properties.MAIL_CODE);
-          });
-        }
-      }).addTo(zonesLayer);
-    });
-
-    // تحميل بيانات GeoJSON لحاويات النفايات وإضافتها إلى طبقة wasteContainersLayer
-    $.getJSON("wasteContainer.json", function (WC) {
-      L.geoJson(WC, {
-        pointToLayer: function (feature, latlng) {
-          return L.circleMarker(latlng, {
-            radius: 5,
-            fillColor: "orange",
-            color: "orange",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8
-          });
-        },
-        onEachFeature: function (feature, layer) {
-          layer.on('click', function (e) {
-            alert("type: " + feature.properties.TYPE_OF_WA);
-          });
-        }
-      }).addTo(wasteContainersLayer);
-    });
-
-    // إنشاء طبقة الموقع
-    let locationLayer = L.layerGroup();
-
-    // دالة لتحديد الموقع
-    function locateUser() {
-      map.locate({
-        setView: true,
-        maxZoom: 16,
-        enableHighAccuracy: true
-      }).on('locationfound', function(e) {
-        const radius = e.accuracy / 2;
-
-        // تنظيف أي مواقع سابقة
-        locationLayer.clearLayers();
-
-        // إضافة دائرة وعلامة الموقع
-        L.circle(e.latlng, radius, {
-          color: '#136AEC',
-          fillColor: '#136AEC',
-          fillOpacity: 0.15
-        }).addTo(locationLayer)
-        .bindPopup("You are within " + radius + " meters from this point");
-
-        L.marker(e.latlng).addTo(locationLayer)
-        .bindPopup("You are here").openPopup();
-      }).on('locationerror', function(e) {
-        alert("Location access denied. Please enable location services.");
-      });
-    }
-
-    // استدعاء وظيفة تحديد الموقع عند إضافة طبقة الموقع فقط
-    map.on('overlayadd', function(eventLayer){
-      if(eventLayer.name === 'My Location'){
-        locateUser();
-      }
-    });
-
-    // إزالة طبقة الموقع عند إخفائها من مفتاح الطبقات
-    map.on('overlayremove', function(eventLayer){
-      if(eventLayer.name === 'My Location'){
-        locationLayer.clearLayers();
-      }
-    });
-
-    // إعداد مفتاح الطبقات
-    const baseLayers = {};
-    const overlays = {
-      "Zones": zonesLayer,
-      "Waste Containers": wasteContainersLayer,
-      "My Location": locationLayer  // إضافة طبقة الموقع إلى مفتاح الطبقات
-    };
-
-    // إضافة مفتاح الطبقات إلى الخريطة
-    L.control.layers(baseLayers, overlays, { collapsed: false }).addTo(map);
-
-    // إضافة خاصية البحث باستخدام Geocoder
-    L.Control.geocoder({
-      defaultMarkGeocode: true
+    // إضافة بوصلة للخريطة
+    L.control.compass({
+      position: 'topright',      // تحديد موقع البوصلة
+      autoActive: true,          // تفعيل البوصلة تلقائيًا
+      showDigit: true            // عرض الرقم على البوصلة
     }).addTo(map);
 
+    // عرض إحداثيات الموقع عند النقر على الخريطة
+    map.on('click', function(e) {
+      const lat = e.latlng.lat.toFixed(5); // عرض الإحداثيات بخمس خانات عشرية
+      const lng = e.latlng.lng.toFixed(5);
+      L.popup()
+        .setLatLng(e.latlng)
+        .setContent(`Latitude: ${lat}, Longitude: ${lng}`)
+        .openOn(map);
+    });
   </script>
 </body>
 
