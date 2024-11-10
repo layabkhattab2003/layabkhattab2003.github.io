@@ -30,28 +30,11 @@
       top: 0px;
       bottom: 0;
     }
-
-    /* تصميم زر الموقع اليدوي */
-    #locate-button {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 1000;
-      background-color: white;
-      border: none;
-      padding: 10px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
   </style>
 </head>
 
 <body>
   <div id="map"></div>
-  <!-- زر الموقع اليدوي -->
-  <button id="locate-button"><i class="fas fa-map-marker-alt"></i> Show My Location</button>
 
   <!-- إضافة مكتبة Leaflet JavaScript -->
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
@@ -61,9 +44,6 @@
   
   <!-- إضافة مكتبة Leaflet Geocoder JavaScript -->
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-
-  <!-- إضافة مكتبة Leaflet Locate JavaScript -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.locatecontrol/0.72.0/L.Control.Locate.min.js"></script>
 
   <script>
     // إعداد خيارات الخريطة
@@ -128,13 +108,52 @@
       }).addTo(wasteContainersLayer);
     });
 
-    // إضافة مفتاح للتحكم في الطبقات
+    // إضافة طبقة الموقع (دون إظهارها مباشرة)
+    let locationLayer = L.layerGroup();
+
+    // وظيفة لتحديد الموقع وإضافته إلى طبقة الموقع
+    function locateUser() {
+      map.locate({
+        setView: true,
+        maxZoom: 16,
+        enableHighAccuracy: true
+      }).on('locationfound', function(e) {
+        const radius = e.accuracy / 2;
+
+        // تنظيف الموقع السابق في حال وجوده
+        locationLayer.clearLayers();
+
+        // إضافة دائرة وعلامة في الموقع الحالي
+        L.circle(e.latlng, radius, {
+          color: '#136AEC',
+          fillColor: '#136AEC',
+          fillOpacity: 0.15
+        }).addTo(locationLayer)
+        .bindPopup("You are within " + radius + " meters from this point");
+
+        L.marker(e.latlng).addTo(locationLayer)
+        .bindPopup("You are here").openPopup();
+      }).on('locationerror', function(e) {
+        alert("Location access denied. Please enable location services.");
+      });
+    }
+
+    // استدعاء وظيفة الموقع عند إضافة طبقة الموقع إلى الخريطة
+    map.on('overlayadd', function(eventLayer){
+      if(eventLayer.name === 'My Location'){
+        locateUser();
+      }
+    });
+
+    // إعداد مفتاح الطبقات
     const baseLayers = {};
     const overlays = {
       "Zones": zonesLayer,
-      "Waste Containers": wasteContainersLayer
+      "Waste Containers": wasteContainersLayer,
+      "My Location": locationLayer  // إضافة طبقة الموقع إلى المفتاح
     };
 
+    // إضافة مفتاح الطبقات إلى الخريطة
     L.control.layers(baseLayers, overlays, { collapsed: false }).addTo(map);
 
     // إضافة خاصية البحث باستخدام Geocoder
@@ -142,36 +161,6 @@
       defaultMarkGeocode: true
     }).addTo(map);
 
-    // إضافة وظيفة تحديد الموقع عند النقر على الزر اليدوي
-    document.getElementById("locate-button").onclick = function () {
-      map.locate({
-        setView: true,
-        maxZoom: 16,
-        enableHighAccuracy: true
-      });
-    };
-
-    // تحديد الموقع وعرض دائرة حوله
-    map.on('locationfound', function (e) {
-      const radius = e.accuracy / 2;
-
-      L.circle(e.latlng, radius, {
-        color: '#136AEC',
-        fillColor: '#136AEC',
-        fillOpacity: 0.15
-      }).addTo(map)
-      .bindPopup("You are within " + radius + " meters from this point").openPopup();
-
-      L.marker(e.latlng, {
-        icon: L.divIcon({ className: 'fas fa-map-marker-alt', iconSize: [20, 20] })
-      }).addTo(map)
-      .bindPopup("You are here").openPopup();
-    });
-
-    // التعامل مع الخطأ في تحديد الموقع
-    map.on('locationerror', function(e) {
-      alert("Location access denied. Please enable location services.");
-    });
   </script>
 </body>
 
