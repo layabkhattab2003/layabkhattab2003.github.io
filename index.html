@@ -12,6 +12,7 @@
       height: 100%;
       width: 100%;
     }
+
     #map {
       position: absolute;
       width: 100%;
@@ -35,21 +36,22 @@
     };
 
     const map = L.map("map", mapOptions);
-   
+
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20
     }).addTo(map);
 
-    // Define layers for Zones and Waste Containers
-    let zonesLayer = L.layerGroup();
-    let wasteContainersLayer = L.layerGroup();
+    // Define layer groups
+    let zonesLayer = L.layerGroup().addTo(map);
+    let wasteContainersLayer = L.layerGroup().addTo(map);
 
-    // Load GeoJSON data for zones and add it to the zonesLayer
-    $.getJSON("RamallahZones.json", function(RZ) {
+    // Load GeoJSON data for zones and add it to zonesLayer
+    $.getJSON("RamallahZones.json", function (RZ) {
+      console.log("Zones data loaded:", RZ);
       L.geoJson(RZ, {
-        style: function(feature) {
+        style: function (feature) {
           return {
             fillColor: "yellow",
             fillOpacity: 0.3,
@@ -58,18 +60,19 @@
             opacity: 0.7
           };
         },
-        onEachFeature: function(feature, layer) {
-          layer.on('click', function(e) {
+        onEachFeature: function (feature, layer) {
+          layer.on('click', function (e) {
             alert("Zone: " + feature.properties.NAME_ENGLI + "\nMAIL_CODE: " + feature.properties.MAIL_CODE);
           });
         }
       }).addTo(zonesLayer);
     });
 
-    // Load GeoJSON data for waste containers and add it to the wasteContainersLayer
-    $.getJSON("wasteContainer.json", function(WC) {
+    // Load GeoJSON data for waste containers and add it to wasteContainersLayer
+    $.getJSON("wasteContainer.json", function (WC) {
+      console.log("Waste Containers data loaded:", WC);
       L.geoJson(WC, {
-        pointToLayer: function(feature, latlng) {
+        pointToLayer: function (feature, latlng) {
           return L.circleMarker(latlng, {
             radius: 5,
             fillColor: "orange",
@@ -79,8 +82,8 @@
             fillOpacity: 0.8
           });
         },
-        onEachFeature: function(feature, layer) {
-          layer.on('click', function(e) {
+        onEachFeature: function (feature, layer) {
+          layer.on('click', function (e) {
             alert("type: " + feature.properties.TYPE_OF_WA);
           });
         }
@@ -95,11 +98,7 @@
     };
 
     // Add layer control to the map
-    L.control.layers(baseLayers, overlays).addTo(map);
-
-    // Add both layers to the map by default
-    zonesLayer.addTo(map);
-    wasteContainersLayer.addTo(map);
+    L.control.layers(baseLayers, overlays, { collapsed: false }).addTo(map);
   </script>
 </body>
 
