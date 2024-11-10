@@ -14,6 +14,9 @@
   <!-- إضافة مكتبة Leaflet Locate CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.locatecontrol/0.72.0/L.Control.Locate.min.css" />
 
+  <!-- إضافة مكتبة Leaflet Compass CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-compass/0.3.0/leaflet-compass.min.css" />
+
   <!-- إضافة مكتبة Font Awesome للأيقونات -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
@@ -45,6 +48,9 @@
   <!-- إضافة مكتبة Leaflet Geocoder JavaScript -->
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
+  <!-- إضافة مكتبة Leaflet Compass JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-compass/0.3.0/leaflet-compass.min.js"></script>
+
   <script>
     // إعداد خيارات الخريطة
     const mapOptions = {
@@ -63,92 +69,34 @@
       maxZoom: 20
     }).addTo(map);
 
-    // تعريف طبقات للمنطقة وحاويات النفايات
+    // إضافة بوصلة للخريطة
+    L.control.compass({
+      position: 'topright',      // تحديد موقع البوصلة في الزاوية العلوية اليمنى
+      autoActive: true,          // تفعيل البوصلة تلقائيًا
+      showDigit: true            // عرض الزاوية الرقمية على البوصلة
+    }).addTo(map);
+
+    // إعداد أيقونة مخصصة لشعار جامعة بيرزيت
+    const birzeitIcon = L.icon({
+      iconUrl: 'https://upload.wikimedia.org/wikipedia/ar/thumb/6/6d/Birzeit_University_logo.svg/2048px-Birzeit_University_logo.svg.png', // رابط شعار جامعة بيرزيت
+      iconSize: [50, 50], // حجم الأيقونة
+      iconAnchor: [25, 25], // نقطة الربط للأيقونة في الخريطة
+      popupAnchor: [0, -25] // مكان ظهور النافذة المنبثقة بالنسبة للأيقونة
+    });
+
+    // إضافة شعار جامعة بيرزيت كموقع ثابت على الخريطة
+    const birzeitMarker = L.marker([31.9585, 35.1886], { icon: birzeitIcon }).addTo(map);
+    birzeitMarker.bindPopup("Birzeit University");
+
+    // إعداد بقية الطبقات والمميزات الأخرى
     let zonesLayer = L.layerGroup().addTo(map);
     let wasteContainersLayer = L.layerGroup().addTo(map);
-
-    // تحميل بيانات GeoJSON للمناطق وإضافتها إلى طبقة zonesLayer
-    $.getJSON("RamallahZones.json", function (RZ) {
-      L.geoJson(RZ, {
-        style: function (feature) {
-          return {
-            fillColor: "yellow",
-            fillOpacity: 0.3,
-            color: "yellow",
-            weight: 1.0,
-            opacity: 0.7
-          };
-        },
-        onEachFeature: function (feature, layer) {
-          layer.on('click', function (e) {
-            alert("Zone: " + feature.properties.NAME_ENGLI + "\nMAIL_CODE: " + feature.properties.MAIL_CODE);
-          });
-        }
-      }).addTo(zonesLayer);
-    });
-
-    // تحميل بيانات GeoJSON لحاويات النفايات وإضافتها إلى طبقة wasteContainersLayer
-    $.getJSON("wasteContainer.json", function (WC) {
-      L.geoJson(WC, {
-        pointToLayer: function (feature, latlng) {
-          return L.circleMarker(latlng, {
-            radius: 5,
-            fillColor: "orange",
-            color: "orange",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8
-          });
-        },
-        onEachFeature: function (feature, layer) {
-          layer.on('click', function (e) {
-            alert("type: " + feature.properties.TYPE_OF_WA);
-          });
-        }
-      }).addTo(wasteContainersLayer);
-    });
-
-    // إنشاء طبقة الموقع
     let locationLayer = L.layerGroup();
-
-    // دالة لتحديد الموقع
-    function locateUser() {
-      map.locate({
-        setView: true,
-        maxZoom: 16,
-        enableHighAccuracy: true
-      }).on('locationfound', function(e) {
-        const radius = e.accuracy / 2;
-
-        // تنظيف أي مواقع سابقة
-        locationLayer.clearLayers();
-
-        // إضافة دائرة وعلامة الموقع
-        L.circle(e.latlng, radius, {
-          color: '#136AEC',
-          fillColor: '#136AEC',
-          fillOpacity: 0.15
-        }).addTo(locationLayer)
-        .bindPopup("You are within " + radius + " meters from this point");
-
-        L.marker(e.latlng).addTo(locationLayer)
-        .bindPopup("You are here").openPopup();
-      }).on('locationerror', function(e) {
-        alert("Location access denied. Please enable location services.");
-      });
-    }
 
     // استدعاء وظيفة تحديد الموقع عند إضافة طبقة الموقع فقط
     map.on('overlayadd', function(eventLayer){
       if(eventLayer.name === 'My Location'){
         locateUser();
-      }
-    });
-
-    // إزالة طبقة الموقع عند إخفائها من مفتاح الطبقات
-    map.on('overlayremove', function(eventLayer){
-      if(eventLayer.name === 'My Location'){
-        locationLayer.clearLayers();
       }
     });
 
