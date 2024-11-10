@@ -108,10 +108,10 @@
       }).addTo(wasteContainersLayer);
     });
 
-    // إضافة طبقة الموقع (دون إظهارها مباشرة)
+    // إنشاء طبقة الموقع
     let locationLayer = L.layerGroup();
 
-    // وظيفة لتحديد الموقع وإضافته إلى طبقة الموقع
+    // دالة لتحديد الموقع
     function locateUser() {
       map.locate({
         setView: true,
@@ -120,10 +120,10 @@
       }).on('locationfound', function(e) {
         const radius = e.accuracy / 2;
 
-        // تنظيف الموقع السابق في حال وجوده
+        // تنظيف أي مواقع سابقة
         locationLayer.clearLayers();
 
-        // إضافة دائرة وعلامة في الموقع الحالي
+        // إضافة دائرة وعلامة الموقع
         L.circle(e.latlng, radius, {
           color: '#136AEC',
           fillColor: '#136AEC',
@@ -138,10 +138,17 @@
       });
     }
 
-    // استدعاء وظيفة الموقع عند إضافة طبقة الموقع إلى الخريطة
+    // استدعاء وظيفة تحديد الموقع عند إضافة طبقة الموقع فقط
     map.on('overlayadd', function(eventLayer){
       if(eventLayer.name === 'My Location'){
         locateUser();
+      }
+    });
+
+    // إزالة طبقة الموقع عند إخفائها من مفتاح الطبقات
+    map.on('overlayremove', function(eventLayer){
+      if(eventLayer.name === 'My Location'){
+        locationLayer.clearLayers();
       }
     });
 
@@ -150,7 +157,7 @@
     const overlays = {
       "Zones": zonesLayer,
       "Waste Containers": wasteContainersLayer,
-      "My Location": locationLayer  // إضافة طبقة الموقع إلى المفتاح
+      "My Location": locationLayer  // إضافة طبقة الموقع إلى مفتاح الطبقات
     };
 
     // إضافة مفتاح الطبقات إلى الخريطة
