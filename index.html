@@ -30,11 +30,28 @@
       top: 0px;
       bottom: 0;
     }
+
+    /* تصميم زر الموقع اليدوي */
+    #locate-button {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background-color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 
 <body>
   <div id="map"></div>
+  <!-- زر الموقع اليدوي -->
+  <button id="locate-button"><i class="fas fa-map-marker-alt"></i> Show My Location</button>
 
   <!-- إضافة مكتبة Leaflet JavaScript -->
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
@@ -125,43 +142,36 @@
       defaultMarkGeocode: true
     }).addTo(map);
 
-    // إضافة زر البحث عن الموقع الحالي باستخدام Locate Control
-    L.control.locate({
-      position: 'topright',
-      drawCircle: true,
-      follow: true,
-      setView: true,
-      keepCurrentZoomLevel: true,
-      markerClass: L.marker,
-      circleStyle: {
+    // إضافة وظيفة تحديد الموقع عند النقر على الزر اليدوي
+    document.getElementById("locate-button").onclick = function () {
+      map.locate({
+        setView: true,
+        maxZoom: 16,
+        enableHighAccuracy: true
+      });
+    };
+
+    // تحديد الموقع وعرض دائرة حوله
+    map.on('locationfound', function (e) {
+      const radius = e.accuracy / 2;
+
+      L.circle(e.latlng, radius, {
         color: '#136AEC',
         fillColor: '#136AEC',
         fillOpacity: 0.15
-      },
-      markerStyle: {
-        color: '#136AEC',
-        fillColor: '#2A93EE',
-        fillOpacity: 1
-      },
-      icon: 'fa fa-location-arrow',
-      iconLoading: 'fa fa-spinner fa-spin',
-      onLocationError: function(err) {
-        alert(err.message);
-      },
-      showPopup: true,
-      strings: {
-        title: "Show me where I am",  // نص يظهر عند تمرير الماوس على الزر
-        popup: "You are within {distance} {unit} from this point",
-        outsideMapBoundsMsg: "You seem located outside the boundaries of the map"
-      },
-      locateOptions: {
-        maxZoom: 16,
-        enableHighAccuracy: true,
-        watch: true,       // متابعة الموقع وتحديثه تلقائيًا
-        timeout: 10000,    // تحديث الموقع كل 10 ثوانٍ
-        maximumAge: 0      // عدم الاحتفاظ بالموقع السابق
-      }
-    }).addTo(map);
+      }).addTo(map)
+      .bindPopup("You are within " + radius + " meters from this point").openPopup();
+
+      L.marker(e.latlng, {
+        icon: L.divIcon({ className: 'fas fa-map-marker-alt', iconSize: [20, 20] })
+      }).addTo(map)
+      .bindPopup("You are here").openPopup();
+    });
+
+    // التعامل مع الخطأ في تحديد الموقع
+    map.on('locationerror', function(e) {
+      alert("Location access denied. Please enable location services.");
+    });
   </script>
 </body>
 
