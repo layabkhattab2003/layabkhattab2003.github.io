@@ -4,8 +4,11 @@
 <head>
   <meta charset="utf-8" />
   <title>Ramallah Waste Containers</title>
+  
+  <!-- إضافة مكتبة Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
-  <!-- Add Leaflet Geocoder CSS -->
+  
+  <!-- إضافة مكتبة Leaflet Geocoder CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
   <style>
@@ -27,29 +30,38 @@
 <body>
   <div id="map"></div>
 
+  <!-- إضافة مكتبة Leaflet JavaScript -->
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+  
+  <!-- إضافة مكتبة jQuery -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <!-- Add Leaflet Geocoder JavaScript -->
+  
+  <!-- إضافة مكتبة Leaflet Geocoder JavaScript -->
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
   <script>
+    // إعداد خيارات الخريطة
     const mapOptions = {
       zoomSnap: 0.5,
       center: [31.9045, 35.2045],
       zoom: 17.5,
     };
 
+    // إنشاء الخريطة
     const map = L.map("map", mapOptions);
 
+    // إضافة طبقة قاعدة للخريطة
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20
     }).addTo(map);
 
+    // تعريف طبقات للمنطقة وحاويات النفايات
     let zonesLayer = L.layerGroup().addTo(map);
     let wasteContainersLayer = L.layerGroup().addTo(map);
 
+    // تحميل بيانات GeoJSON للمناطق وإضافتها إلى طبقة zonesLayer
     $.getJSON("RamallahZones.json", function (RZ) {
       L.geoJson(RZ, {
         style: function (feature) {
@@ -69,6 +81,7 @@
       }).addTo(zonesLayer);
     });
 
+    // تحميل بيانات GeoJSON لحاويات النفايات وإضافتها إلى طبقة wasteContainersLayer
     $.getJSON("wasteContainer.json", function (WC) {
       L.geoJson(WC, {
         pointToLayer: function (feature, latlng) {
@@ -89,6 +102,7 @@
       }).addTo(wasteContainersLayer);
     });
 
+    // إضافة مفتاح للتحكم في الطبقات
     const baseLayers = {};
     const overlays = {
       "Zones": zonesLayer,
@@ -97,7 +111,7 @@
 
     L.control.layers(baseLayers, overlays, { collapsed: false }).addTo(map);
 
-    // Add search control
+    // إضافة خاصية البحث باستخدام Geocoder
     L.Control.geocoder({
       defaultMarkGeocode: true
     }).addTo(map);
