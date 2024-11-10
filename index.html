@@ -11,6 +11,9 @@
   <!-- إضافة مكتبة Leaflet Geocoder CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
+  <!-- إضافة مكتبة Leaflet Locate CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.locatecontrol/0.72.0/L.Control.Locate.min.css" />
+
   <style>
     body {
       margin: 0px;
@@ -38,6 +41,9 @@
   
   <!-- إضافة مكتبة Leaflet Geocoder JavaScript -->
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+  <!-- إضافة مكتبة Leaflet Locate JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.locatecontrol/0.72.0/L.Control.Locate.min.js"></script>
 
   <script>
     // إعداد خيارات الخريطة
@@ -116,29 +122,40 @@
       defaultMarkGeocode: true
     }).addTo(map);
 
-    // خاصية عرض الموقع الحالي
-    map.locate({ setView: true, maxZoom: 16 });
-
-    function onLocationFound(e) {
-      const radius = e.accuracy / 2;
-
-      // إضافة دائرة حول الموقع الحالي
-      L.circle(e.latlng, radius).addTo(map)
-        .bindPopup("You are within " + radius + " meters from this point").openPopup();
-
-      // إضافة علامة على الموقع الحالي
-      L.marker(e.latlng).addTo(map)
-        .bindPopup("You are here").openPopup();
-    }
-
-    // التعامل مع الخطأ في تحديد الموقع
-    function onLocationError(e) {
-      alert(e.message);
-    }
-
-    // استدعاء الوظائف الخاصة بتحديد الموقع
-    map.on('locationfound', onLocationFound);
-    map.on('locationerror', onLocationError);
+    // إضافة زر البحث عن الموقع الحالي باستخدام Locate Control
+    L.control.locate({
+      position: 'topright',
+      drawCircle: true,
+      follow: true,
+      setView: true,
+      keepCurrentZoomLevel: true,
+      markerClass: L.marker,
+      circleStyle: {
+        color: '#136AEC',
+        fillColor: '#136AEC',
+        fillOpacity: 0.15
+      },
+      markerStyle: {
+        color: '#136AEC',
+        fillColor: '#2A93EE',
+        fillOpacity: 1
+      },
+      icon: 'fa fa-location-arrow',
+      iconLoading: 'fa fa-spinner fa-spin',
+      onLocationError: function(err) {
+        alert(err.message);
+      },
+      showPopup: true,
+      strings: {
+        title: "Show me where I am",  // نص يظهر عند تمرير الماوس على الزر
+        popup: "You are within {distance} {unit} from this point",
+        outsideMapBoundsMsg: "You seem located outside the boundaries of the map"
+      },
+      locateOptions: {
+        maxZoom: 16,
+        enableHighAccuracy: true
+      }
+    }).addTo(map);
   </script>
 </body>
 
