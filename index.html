@@ -5,6 +5,8 @@
   <meta charset="utf-8" />
   <title>Ramallah Waste Containers</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+  <!-- Add Leaflet Geocoder CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
   <style>
     body {
@@ -27,6 +29,8 @@
 
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <!-- Add Leaflet Geocoder JavaScript -->
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
   <script>
     const mapOptions = {
@@ -43,13 +47,10 @@
       maxZoom: 20
     }).addTo(map);
 
-    // Define layer groups
     let zonesLayer = L.layerGroup().addTo(map);
     let wasteContainersLayer = L.layerGroup().addTo(map);
 
-    // Load GeoJSON data for zones and add it to zonesLayer
     $.getJSON("RamallahZones.json", function (RZ) {
-      console.log("Zones data loaded:", RZ);
       L.geoJson(RZ, {
         style: function (feature) {
           return {
@@ -68,9 +69,7 @@
       }).addTo(zonesLayer);
     });
 
-    // Load GeoJSON data for waste containers and add it to wasteContainersLayer
     $.getJSON("wasteContainer.json", function (WC) {
-      console.log("Waste Containers data loaded:", WC);
       L.geoJson(WC, {
         pointToLayer: function (feature, latlng) {
           return L.circleMarker(latlng, {
@@ -90,15 +89,18 @@
       }).addTo(wasteContainersLayer);
     });
 
-    // Add layers to map with control options
     const baseLayers = {};
     const overlays = {
       "Zones": zonesLayer,
       "Waste Containers": wasteContainersLayer
     };
 
-    // Add layer control to the map
     L.control.layers(baseLayers, overlays, { collapsed: false }).addTo(map);
+
+    // Add search control
+    L.Control.geocoder({
+      defaultMarkGeocode: true
+    }).addTo(map);
   </script>
 </body>
 
