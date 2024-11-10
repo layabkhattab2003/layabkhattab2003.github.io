@@ -30,11 +30,27 @@
       top: 0px;
       bottom: 0;
     }
+
+    /* تصميم للبوصلة الثابتة */
+    .compass {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 60px;
+      height: 60px;
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/3/39/Compass_icon.svg'); /* رابط أيقونة البوصلة */
+      background-size: contain;
+      background-repeat: no-repeat;
+      z-index: 1000;
+      opacity: 1; /* زيادة الشفافية */
+    }
   </style>
 </head>
 
 <body>
   <div id="map"></div>
+  <!-- أيقونة البوصلة الثابتة -->
+  <div class="compass"></div>
 
   <!-- إضافة مكتبة Leaflet JavaScript -->
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
@@ -106,50 +122,6 @@
           });
         }
       }).addTo(wasteContainersLayer);
-    });
-
-    // إنشاء طبقة الموقع
-    let locationLayer = L.layerGroup();
-
-    // دالة لتحديد الموقع
-    function locateUser() {
-      map.locate({
-        setView: true,
-        maxZoom: 16,
-        enableHighAccuracy: true
-      }).on('locationfound', function(e) {
-        const radius = e.accuracy / 2;
-
-        // تنظيف أي مواقع سابقة
-        locationLayer.clearLayers();
-
-        // إضافة دائرة وعلامة الموقع
-        L.circle(e.latlng, radius, {
-          color: '#136AEC',
-          fillColor: '#136AEC',
-          fillOpacity: 0.15
-        }).addTo(locationLayer)
-        .bindPopup("You are within " + radius + " meters from this point");
-
-        L.marker(e.latlng).addTo(locationLayer)
-        .bindPopup("You are here").openPopup();
-      }).on('locationerror', function(e) {
-        alert("Location access denied. Please enable location services.");
-      });
-    }
-
-    // استدعاء وظيفة تحديد الموقع عند إضافة طبقة الموقع فقط
-    map.on('overlayadd', function(eventLayer){
-      if(eventLayer.name === 'My Location'){
-        locateUser();
-      }
-    });
-
-    // إزالة طبقة الموقع عند إخفائها من مفتاح الطبقات
-    map.on('overlayremove', function(eventLayer){
-      if(eventLayer.name === 'My Location'){
-        locationLayer.clearLayers();
-      }
     });
 
     // إعداد مفتاح الطبقات
