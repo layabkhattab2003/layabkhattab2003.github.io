@@ -156,7 +156,10 @@
       },
       locateOptions: {
         maxZoom: 16,
-        enableHighAccuracy: true
+        enableHighAccuracy: true,
+        watch: true,       // متابعة الموقع وتحديثه تلقائيًا
+        timeout: 10000,    // تحديث الموقع كل 10 ثوانٍ
+        maximumAge: 0      // عدم الاحتفاظ بالموقع السابق
       }
     }).addTo(map);
   </script>
