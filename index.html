@@ -52,7 +52,7 @@
     // إعداد خيارات الخريطة
     const mapOptions = {
       zoomSnap: 0.5,
-      center: [31.9045, 35.2045],
+      center: [31.9045, 35.2045], // إحداثيات المركز الأولية
       zoom: 17.5,
     };
 
@@ -68,18 +68,18 @@
 
     // إضافة بوصلة للخريطة
     L.control.compass({
-      position: 'topright',      // تحديد موقع البوصلة
+      position: 'topright',      // تحديد موقع البوصلة في الزاوية العلوية اليمنى
       autoActive: true,          // تفعيل البوصلة تلقائيًا
-      showDigit: true            // عرض الرقم على البوصلة
+      showDigit: true            // عرض الزاوية الرقمية على البوصلة
     }).addTo(map);
 
     // عرض إحداثيات الموقع عند النقر على الخريطة
     map.on('click', function(e) {
-      const lat = e.latlng.lat.toFixed(5); // عرض الإحداثيات بخمس خانات عشرية
-      const lng = e.latlng.lng.toFixed(5);
+      const lat = e.latlng.lat.toFixed(5); // الحصول على خط العرض بدقة 5 خانات عشرية
+      const lng = e.latlng.lng.toFixed(5); // الحصول على خط الطول بدقة 5 خانات عشرية
       L.popup()
-        .setLatLng(e.latlng)
-        .setContent(`Latitude: ${lat}, Longitude: ${lng}`)
+        .setLatLng(e.latlng)               // تحديد موقع النافذة المنبثقة
+        .setContent(`Latitude: ${lat}, Longitude: ${lng}`) // عرض الإحداثيات في النافذة
         .openOn(map);
     });
   </script>
