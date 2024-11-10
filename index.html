@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Ramallah Waste Containers</title>
+  <title>Ramallah Waste Containers - Find Nearest Route</title>
   
   <!-- إضافة مكتبة Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
@@ -34,12 +34,16 @@
       border: none;
       cursor: pointer;
       z-index: 1000;
+      font-size: 14px;
     }
   </style>
 </head>
 
 <body>
+  <!-- خريطة Leaflet -->
   <div id="map"></div>
+  
+  <!-- زر البحث عن أقرب حاوية -->
   <button id="find-route-btn">Find Nearest Container</button>
 
   <!-- إضافة مكتبة Leaflet JavaScript -->
@@ -51,56 +55,60 @@
   <script>
     // إعداد خيارات الخريطة
     const mapOptions = {
-      zoomSnap: 0.5,
-      center: [31.9045, 35.2045],
+      center: [31.9045, 35.2045], // مركز الخريطة على مدينة رام الله
       zoom: 17.5,
+      zoomSnap: 0.5
     };
 
     // إنشاء الخريطة
     const map = L.map("map", mapOptions);
 
-    // إضافة طبقة قاعدة للخريطة
+    // إضافة طبقة خريطة أساسية
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
 
-    // طبقة لحاويات النفايات
-    let wasteContainersLayer = L.layerGroup().addTo(map);
+    // طبقة لمواقع حاويات النفايات
     const wasteContainers = [
-      [31.9065, 35.2075], // موقع الحاوية 1
-      [31.9055, 35.2055], // موقع الحاوية 2
-      [31.9040, 35.2080]  // موقع الحاوية 3
-      // يمكن إضافة المزيد من الحاويات هنا
+      [31.9065, 35.2075], // موقع حاوية النفايات 1
+      [31.9055, 35.2055], // موقع حاوية النفايات 2
+      [31.9040, 35.2080]  // موقع حاوية النفايات 3
+      // يمكنك إضافة المزيد من الإحداثيات للحاويات هنا
     ];
 
-    // إضافة الحاويات إلى طبقة الحاويات
+    // إضافة حاويات النفايات إلى الخريطة كعلامات (Markers)
+    const wasteContainersLayer = L.layerGroup();
     wasteContainers.forEach(coords => {
       L.marker(coords).addTo(wasteContainersLayer);
     });
+    wasteContainersLayer.addTo(map);
 
-    // طبقة للمسار
+    // طبقة المسار
     let routingControl;
 
-    // دالة لتحديد موقع المستخدم
+    // دالة لتحديد موقع المستخدم وإنشاء المسار إلى أقرب حاوية
     function locateUserAndFindRoute() {
+      // تحديد موقع المستخدم
       map.locate({
         setView: true,
         maxZoom: 16,
         enableHighAccuracy: true
       }).on('locationfound', function(e) {
         const userLocation = e.latlng;
+
+        // إيجاد أقرب حاوية
         const nearestContainer = findNearestContainer(userLocation);
 
-        // إذا كان هناك مسار سابق، نقوم بإزالته
+        // إزالة المسار السابق إذا كان موجودًا
         if (routingControl) {
           map.removeControl(routingControl);
         }
 
-        // إنشاء مسار إلى أقرب حاوية
+        // رسم المسار إلى أقرب حاوية
         routingControl = L.Routing.control({
           waypoints: [
-            userLocation,
-            nearestContainer
+            userLocation,        // نقطة بداية المسار: موقع المستخدم
+            nearestContainer     // نقطة نهاية المسار: أقرب حاوية
           ],
           routeWhileDragging: true
         }).addTo(map);
@@ -110,7 +118,7 @@
       });
     }
 
-    // دالة لإيجاد أقرب حاوية بناءً على موقع المستخدم
+    // دالة لإيجاد أقرب حاوية من موقع المستخدم
     function findNearestContainer(userLocation) {
       let nearestContainer = null;
       let shortestDistance = Infinity;
@@ -126,7 +134,7 @@
       return nearestContainer;
     }
 
-    // إضافة حدث للنقر على زر "Find Nearest Container"
+    // إضافة حدث عند النقر على زر "Find Nearest Container"
     document.getElementById('find-route-btn').addEventListener('click', locateUserAndFindRoute);
   </script>
 </body>
