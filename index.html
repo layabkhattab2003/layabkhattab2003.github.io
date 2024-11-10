@@ -115,6 +115,30 @@
     L.Control.geocoder({
       defaultMarkGeocode: true
     }).addTo(map);
+
+    // خاصية عرض الموقع الحالي
+    map.locate({ setView: true, maxZoom: 16 });
+
+    function onLocationFound(e) {
+      const radius = e.accuracy / 2;
+
+      // إضافة دائرة حول الموقع الحالي
+      L.circle(e.latlng, radius).addTo(map)
+        .bindPopup("You are within " + radius + " meters from this point").openPopup();
+
+      // إضافة علامة على الموقع الحالي
+      L.marker(e.latlng).addTo(map)
+        .bindPopup("You are here").openPopup();
+    }
+
+    // التعامل مع الخطأ في تحديد الموقع
+    function onLocationError(e) {
+      alert(e.message);
+    }
+
+    // استدعاء الوظائف الخاصة بتحديد الموقع
+    map.on('locationfound', onLocationFound);
+    map.on('locationerror', onLocationError);
   </script>
 </body>
 
