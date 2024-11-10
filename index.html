@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Ramallah Waste Containers</title>
+  <title>Enhanced Interactive Map</title>
   
   <!-- إضافة مكتبة Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
@@ -14,8 +14,11 @@
   <!-- إضافة مكتبة Leaflet Compass CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-compass/0.3.0/leaflet-compass.min.css" />
 
-  <!-- إضافة مكتبة Font Awesome للأيقونات -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <!-- إضافة مكتبة Leaflet Draw CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+
+  <!-- إضافة مكتبة Leaflet Measure CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" />
 
   <style>
     body {
@@ -48,6 +51,12 @@
   <!-- إضافة مكتبة Leaflet Compass JavaScript -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-compass/0.3.0/leaflet-compass.min.js"></script>
 
+  <!-- إضافة مكتبة Leaflet Draw JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+  <!-- إضافة مكتبة Leaflet Measure JavaScript -->
+  <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js"></script>
+
   <script>
     // إعداد خيارات الخريطة
     const mapOptions = {
@@ -71,6 +80,87 @@
       position: 'topright',      // تحديد موقع البوصلة في الزاوية العلوية اليمنى
       autoActive: true,          // تفعيل البوصلة تلقائيًا
       showDigit: true            // عرض الزاوية الرقمية على البوصلة
+    }).addTo(map);
+
+    // إضافة أداة قياس المسافات والمساحات
+    L.control.measure({
+      position: 'topright',
+      primaryLengthUnit: 'meters',
+      secondaryLengthUnit: 'kilometers',
+      primaryAreaUnit: 'sqmeters',
+      secondaryAreaUnit: 'hectares'
+    }).addTo(map);
+
+    // إنشاء طبقة الموقع
+    let locationLayer = L.layerGroup();
+
+    // دالة لتحديد الموقع
+    function locateUser() {
+      map.locate({
+        setView: true,
+        maxZoom: 16,
+        enableHighAccuracy: true
+      }).on('locationfound', function(e) {
+        const radius = e.accuracy / 2;
+
+        // تنظيف أي مواقع سابقة
+        locationLayer.clearLayers();
+
+        // إضافة دائرة وعلامة الموقع
+        L.circle(e.latlng, radius, {
+          color: '#136AEC',
+          fillColor: '#136AEC',
+          fillOpacity: 0.15
+        }).addTo(locationLayer)
+        .bindPopup("You are within " + radius + " meters from this point");
+
+        L.marker(e.latlng).addTo(locationLayer)
+        .bindPopup("You are here").openPopup();
+      }).on('locationerror', function(e) {
+        alert("Location access denied. Please enable location services.");
+      });
+    }
+
+    // استدعاء وظيفة تحديد الموقع عند إضافة طبقة الموقع فقط
+    map.on('overlayadd', function(eventLayer){
+      if(eventLayer.name === 'My Location'){
+        locateUser();
+      }
+    });
+
+    // إزالة طبقة الموقع عند إخفائها من مفتاح الطبقات
+    map.on('overlayremove', function(eventLayer){
+      if(eventLayer.name === 'My Location'){
+        locationLayer.clearLayers();
+      }
+    });
+
+    // إضافة أداة الرسم للخريطة
+    const drawControl = new L.Control.Draw({
+      edit: {
+        featureGroup: locationLayer // استخدام طبقة الموقع لتخزين الرسومات
+      }
+    });
+    map.addControl(drawControl);
+
+    // التعامل مع حدث الرسم
+    map.on(L.Draw.Event.CREATED, function (e) {
+      const layer = e.layer;
+      locationLayer.addLayer(layer); // إضافة الشكل المرسوم إلى طبقة الموقع
+    });
+
+    // إعداد مفتاح الطبقات
+    const baseLayers = {};
+    const overlays = {
+      "My Location": locationLayer  // إضافة طبقة الموقع إلى المفتاح
+    };
+
+    // إضافة مفتاح الطبقات إلى الخريطة
+    L.control.layers(baseLayers, overlays, { collapsed: false }).addTo(map);
+
+    // إضافة خاصية البحث باستخدام Geocoder
+    L.Control.geocoder({
+      defaultMarkGeocode: true
     }).addTo(map);
 
     // عرض إحداثيات الموقع عند النقر على الخريطة
