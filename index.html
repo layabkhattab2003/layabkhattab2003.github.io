@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Ramallah Waste Containers</title>
+  <title>Enhanced Interactive Map</title>
   
   <!-- إضافة مكتبة Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
@@ -11,11 +11,14 @@
   <!-- إضافة مكتبة Leaflet Geocoder CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
-  <!-- إضافة مكتبة Leaflet Locate CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.locatecontrol/0.72.0/L.Control.Locate.min.css" />
+  <!-- إضافة مكتبة Leaflet Compass CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-compass/0.3.0/leaflet-compass.min.css" />
 
-  <!-- إضافة مكتبة Font Awesome للأيقونات -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <!-- إضافة مكتبة Leaflet Draw CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+
+  <!-- إضافة مكتبة Leaflet Measure CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" />
 
   <style>
     body {
@@ -45,11 +48,20 @@
   <!-- إضافة مكتبة Leaflet Geocoder JavaScript -->
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
+  <!-- إضافة مكتبة Leaflet Compass JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-compass/0.3.0/leaflet-compass.min.js"></script>
+
+  <!-- إضافة مكتبة Leaflet Draw JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+  <!-- إضافة مكتبة Leaflet Measure JavaScript -->
+  <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js"></script>
+
   <script>
     // إعداد خيارات الخريطة
     const mapOptions = {
       zoomSnap: 0.5,
-      center: [31.9045, 35.2045],
+      center: [31.9045, 35.2045], // إحداثيات المركز الأولية
       zoom: 17.5,
     };
 
@@ -63,50 +75,21 @@
       maxZoom: 20
     }).addTo(map);
 
-    // تعريف طبقات للمنطقة وحاويات النفايات
-    let zonesLayer = L.layerGroup().addTo(map);
-    let wasteContainersLayer = L.layerGroup().addTo(map);
+    // إضافة بوصلة للخريطة
+    L.control.compass({
+      position: 'topright',      // تحديد موقع البوصلة في الزاوية العلوية اليمنى
+      autoActive: true,          // تفعيل البوصلة تلقائيًا
+      showDigit: true            // عرض الزاوية الرقمية على البوصلة
+    }).addTo(map);
 
-    // تحميل بيانات GeoJSON للمناطق وإضافتها إلى طبقة zonesLayer
-    $.getJSON("RamallahZones.json", function (RZ) {
-      L.geoJson(RZ, {
-        style: function (feature) {
-          return {
-            fillColor: "yellow",
-            fillOpacity: 0.3,
-            color: "yellow",
-            weight: 1.0,
-            opacity: 0.7
-          };
-        },
-        onEachFeature: function (feature, layer) {
-          layer.on('click', function (e) {
-            alert("Zone: " + feature.properties.NAME_ENGLI + "\nMAIL_CODE: " + feature.properties.MAIL_CODE);
-          });
-        }
-      }).addTo(zonesLayer);
-    });
-
-    // تحميل بيانات GeoJSON لحاويات النفايات وإضافتها إلى طبقة wasteContainersLayer
-    $.getJSON("wasteContainer.json", function (WC) {
-      L.geoJson(WC, {
-        pointToLayer: function (feature, latlng) {
-          return L.circleMarker(latlng, {
-            radius: 5,
-            fillColor: "orange",
-            color: "orange",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8
-          });
-        },
-        onEachFeature: function (feature, layer) {
-          layer.on('click', function (e) {
-            alert("type: " + feature.properties.TYPE_OF_WA);
-          });
-        }
-      }).addTo(wasteContainersLayer);
-    });
+    // إضافة أداة قياس المسافات والمساحات
+    L.control.measure({
+      position: 'topright',
+      primaryLengthUnit: 'meters',
+      secondaryLengthUnit: 'kilometers',
+      primaryAreaUnit: 'sqmeters',
+      secondaryAreaUnit: 'hectares'
+    }).addTo(map);
 
     // إنشاء طبقة الموقع
     let locationLayer = L.layerGroup();
@@ -152,12 +135,24 @@
       }
     });
 
+    // إضافة أداة الرسم للخريطة
+    const drawControl = new L.Control.Draw({
+      edit: {
+        featureGroup: locationLayer // استخدام طبقة الموقع لتخزين الرسومات
+      }
+    });
+    map.addControl(drawControl);
+
+    // التعامل مع حدث الرسم
+    map.on(L.Draw.Event.CREATED, function (e) {
+      const layer = e.layer;
+      locationLayer.addLayer(layer); // إضافة الشكل المرسوم إلى طبقة الموقع
+    });
+
     // إعداد مفتاح الطبقات
     const baseLayers = {};
     const overlays = {
-      "Zones": zonesLayer,
-      "Waste Containers": wasteContainersLayer,
-      "My Location": locationLayer  // إضافة طبقة الموقع إلى مفتاح الطبقات
+      "My Location": locationLayer  // إضافة طبقة الموقع إلى المفتاح
     };
 
     // إضافة مفتاح الطبقات إلى الخريطة
@@ -168,6 +163,15 @@
       defaultMarkGeocode: true
     }).addTo(map);
 
+    // عرض إحداثيات الموقع عند النقر على الخريطة
+    map.on('click', function(e) {
+      const lat = e.latlng.lat.toFixed(5); // الحصول على خط العرض بدقة 5 خانات عشرية
+      const lng = e.latlng.lng.toFixed(5); // الحصول على خط الطول بدقة 5 خانات عشرية
+      L.popup()
+        .setLatLng(e.latlng)               // تحديد موقع النافذة المنبثقة
+        .setContent(`Latitude: ${lat}, Longitude: ${lng}`) // عرض الإحداثيات في النافذة
+        .openOn(map);
+    });
   </script>
 </body>
 
